@@ -25,6 +25,9 @@ class FreeSwitchESLProtocol(eventsocket.EventProtocol):
             self.factory.continueTrying = False
             self.factory.ready.errback(e)
 
+		#check for G729
+		self.g729 = "true" in yield self.api('g729_available')
+		
         # Set the events we want to get.
         yield self.eventplain("CHANNEL_CREATE CHANNEL_HANGUP CHANNEL_HANGUP_COMPLETE")
 
@@ -36,6 +39,8 @@ class FreeSwitchESLProtocol(eventsocket.EventProtocol):
         statsd.increment('freeswitch.channels.started',1)
         statsd.increment('freeswitch.channels',1)
         statsd.increment('freeswitch.call.direction.'+ ev.Call-Direction)
+        if (self.g729):
+        	g729_metrics()
         
     def onChannelHangup(self, ev):
         statsd.increment('freeswitch.channels.finished',1)
@@ -54,9 +59,11 @@ class FreeSwitchESLProtocol(eventsocket.EventProtocol):
     	statsd.increment('freeswitch.caller.source.'+ev.Caller-Source)
     
     @defer.inlineCallbacks 
-    def fetch729(self):
-        result = yield self.api('g729_used')
-        log.msg(result)
+    def g729_metrics(self):
+    	statsd.gauge('freeswitch.g729.total', yield self.api('g729_count'))
+    	g729_enc, g729_dec = (yield self.api('g729_used'))).split(:)
+    	statsd.gauge('freeswitch.g729.used.encoder', g729_enc)
+    	statsd.gauge('freeswitch.g729.used.decoder', g729_dec)
 
 class FreeSwitchESLFactory(protocol.ReconnectingClientFactory):
     maxDelay = 15

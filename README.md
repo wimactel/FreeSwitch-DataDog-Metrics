@@ -3,7 +3,9 @@ FreeSwitch-DataDog-Metrics
 
 A FreeSwitch ESL application that exports statistics to DataDog using the dogstatsd api. 
 
-Intended to run on a machine that has both the datadog-agent and freeswitch running
+Intended to run on a machine that has both the datadog-agent and freeswitch running.
+
+Will automatically capture G729 licensing metrics, if mod\_com\_g729 is enabled. 
 
 TODO
 ----
@@ -12,12 +14,11 @@ TODO
 * Better metric names
 * Metrics on TDM trunks
 * Rename Classes
-* G729 Licensing
-* Generate Alarms
+* Generate Alerts
 * Daemonize 
 * Package
 * Add a config file
-* Alarm on SIP gateways
+* Alert on SIP gateways
 * don't assume the location of eventsocket
 * add the following metrics
 	* Many [Sofia Events](http://wiki.freeswitch.org/wiki/Mod_sofia#Custom_Events) (Registry?)
@@ -45,7 +46,7 @@ Configuration
 * EventSocket Host (defaults to localhost)
 * EventSocket Port (Defaults to 8021)
 * DogStatsD Port (defaults to ?)
-
+* Normal hangup causes
 
 Requirements 
 ------------
