@@ -11,11 +11,11 @@ from twisted.internet import defer, reactor, protocol
 from statsd import statsd
 
 class MyProtocol(eventsocket.EventProtocol):
-	def __init__(self):
-		eventsocket.EventProtocol.__init__(self)
+    def __init__(self):
+        eventsocket.EventProtocol.__init__(self)
 
-	@defer.inlineCallbacks
-	def authRequest(self, ev):
+    @defer.inlineCallbacks
+    def authRequest(self, ev):
         # Try to authenticate in the eventsocket (Inbound)
         # Please refer to http://wiki.freeswitch.org/wiki/Mod_event_socket#auth
         # for more information.
@@ -32,18 +32,18 @@ class MyProtocol(eventsocket.EventProtocol):
         # instance as argument.
         self.factory.ready.callback(self)
 
-	def onChannelCreate(self, ev):
-		log.msg('New Channel!')
-		statsd.increment('freeswitch.channels.started',1)
-		statsd.increment('freeswitch.channels',1)
+    def onChannelCreate(self, ev):
+        log.msg('New Channel!')
+        statsd.increment('freeswitch.channels.started',1)
+        statsd.increment('freeswitch.channels',1)
         
     def onChannelHangup(self, ev):
-		statsd.increment('freeswitch.channels.finished',1)
-		statsd.decrement('freeswitch.channels',1)
-		if (ev.Hangup_Cause in ["NORMAL_CLEARING"]):
-		    statsd.increment('freeswitch.channels.finished.normally',1)
-		    statsd.increment('freeswitch.channels.finished.normally.'+ev.Hangup_Cause.lower(),1)
-		else:
+        statsd.increment('freeswitch.channels.finished',1)
+        statsd.decrement('freeswitch.channels',1)
+        if (ev.Hangup_Cause in ["NORMAL_CLEARING"]):
+            statsd.increment('freeswitch.channels.finished.normally',1)
+            statsd.increment('freeswitch.channels.finished.normally.'+ev.Hangup_Cause.lower(),1)
+        else:
             statsd.increment('freeswitch.channels.finished.abnormally',1)
             statsd.increment('freeswitch.channels.finished.abnormally.'+ev.Hangup_Cause.lower(),1)	
 
@@ -52,7 +52,7 @@ class MyProtocol(eventsocket.EventProtocol):
     
     @defer.inlineCallbacks 
     def fetch729(self):
-		result = yield self.api('g729_used')
+        result = yield self.api('g729_used')
         log.msg(result)
 
 class MyFactory(protocol.ReconnectingClientFactory):
