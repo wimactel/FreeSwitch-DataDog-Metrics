@@ -60,10 +60,15 @@ class FreeSwitchESLProtocol(eventsocket.EventProtocol):
     
     @defer.inlineCallbacks 
     def g729_metrics(self):
-    	statsd.gauge('freeswitch.g729.total', yield self.api('g729_count'))
+    	g729_count = yield self.api('g729_count')
+    	statsd.gauge('freeswitch.g729.total', g729_count)
     	g729_enc, g729_dec = (yield self.api('g729_used'))).split(":")
     	statsd.gauge('freeswitch.g729.used.encoder', g729_enc)
     	statsd.gauge('freeswitch.g729.used.decoder', g729_dec)
+    	if (g729_enc > g729_dec):
+    		statsd.gauge('freeswitch.g729.utilization' g729_enc / g729_count)
+    	else:
+    		statsd.gauge('freeswitch.g729.utilization' g729_dec / g729_count)
 
 class FreeSwitchESLFactory(protocol.ReconnectingClientFactory):
     maxDelay = 15
