@@ -20,21 +20,31 @@ TODO
 * Alarm on SIP gateways
 * don't assume the location of eventsocket
 * add the following metrics
-	* variable\_rtp\_audio\_in\_skip\_packet\_count - CHANNEL\_HANGUP\_COMPLETE - Histogram
-	* variable\_rtp\_audio\_out\_skip\_packet\_count - CHANNEL\_HANGUP\_COMPLETE - Histogram
-	* Caller-Context.[context] - CHANNEL\_HANGUP\_COMPLETE - Counter
-	* Caller-Source.[source] - CHANNEL\_HANGUP\_COMPLETE - Counter
-	* Call-Direction.[inbound|outbound] - CHANNEL\_CREATE - Counter
 	* Many [Sofia Events](http://wiki.freeswitch.org/wiki/Mod_sofia#Custom_Events) (Registry?)
 
 
-Alarms
+Alerts
 ------
 
 * SHUTDOWN
 * MODULE\_LOAD
 * RELAODXML
 * Many [Sofia Events](http://wiki.freeswitch.org/wiki/Mod_sofia#Custom_Events)
+
+Sofia
+-----
+
+`event plain CUSTOM sofia::register sofia::expire`
+
+
+Configuration
+-------------
+
+* DataDog API Key
+* EventSocket Password (defaults to ClueCon)
+* EventSocket Host (defaults to localhost)
+* EventSocket Port (Defaults to 8021)
+* DogStatsD Port (defaults to ?)
 
 
 Requirements 
@@ -43,11 +53,12 @@ Requirements
 * [Twisted](http://twistedmatrix.com/)
 * [eventsocket](https://github.com/fiorix/eventsocket)
 * [dogstatsd-python](https://github.com/DataDog/dogstatsd-python)
+* YAML
 
 Metrics
 -------
 
-| Stat                                             | Type         | Description  |
+| Stat                                             | Type           | Description  |
 | freeswitch.channels                              | counter 		| Number of currently active channels  |
 | freeswitch.channels.started                      | counter 		| Number of channels that were started |
 | freeswitch.channels.finished                     | counter 		| Number of channels that were hungup  |

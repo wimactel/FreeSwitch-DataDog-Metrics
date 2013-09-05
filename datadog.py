@@ -10,7 +10,7 @@ from twisted.internet import defer, reactor, protocol
 
 from statsd import statsd
 
-class MyProtocol(eventsocket.EventProtocol):
+class FreeSwitchESLProtocol(eventsocket.EventProtocol):
     def __init__(self):
         eventsocket.EventProtocol.__init__(self)
 
@@ -33,9 +33,9 @@ class MyProtocol(eventsocket.EventProtocol):
         self.factory.ready.callback(self)
 
     def onChannelCreate(self, ev):
-        log.msg('New Channel!')
         statsd.increment('freeswitch.channels.started',1)
         statsd.increment('freeswitch.channels',1)
+        statsd.increment('freeswitch.call.direction.'+ ev.Call-Direction)
         
     def onChannelHangup(self, ev):
         statsd.increment('freeswitch.channels.finished',1)
@@ -48,16 +48,19 @@ class MyProtocol(eventsocket.EventProtocol):
             statsd.increment('freeswitch.channels.finished.abnormally.'+ev.Hangup_Cause.lower(),1)	
 
     def onChannelHangupComplete(self, ev):
-        log.msg('Channel Complete Hangup!')
+    	statsd.histogram('freeswitch.rtp.skipped_packet.in', ev.variable_rtp_audio_in_skip_packet_count)
+    	statsd.histogram('freeswitch.rtp.skipped_packet.out', ev.variable_rtp_audio_out_skip_packet_count)
+		statsd.increment('freeswitch.caller.context.'+ev.Caller-Context)
+    	statsd.increment('freeswitch.caller.source.'+ev.Caller-Source)
     
     @defer.inlineCallbacks 
     def fetch729(self):
         result = yield self.api('g729_used')
         log.msg(result)
 
-class MyFactory(protocol.ReconnectingClientFactory):
+class FreeSwitchESLFactory(protocol.ReconnectingClientFactory):
     maxDelay = 15
-    protocol = MyProtocol
+    protocol = FreeSwitchESLProtocol
 
     def __init__(self, password):
         self.ready = defer.Deferred()
@@ -65,7 +68,7 @@ class MyFactory(protocol.ReconnectingClientFactory):
 
 @defer.inlineCallbacks
 def main():
-    factory = MyFactory(password="ClueCon")
+    factory = FreeSwitchESLFactory(password="ClueCon")
     reactor.connectTCP("127.0.0.1", 8021, factory)
 
     # Wait for the connection to be established
