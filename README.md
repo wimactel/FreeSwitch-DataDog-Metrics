@@ -1,6 +1,8 @@
 FreeSwitch-DataDog-Metrics
 ==========================
 
+*Currently not a functional application.*
+
 A FreeSwitch ESL application that exports statistics to DataDog using the dogstatsd api. 
 
 Intended to run on a machine that has both the datadog-agent and freeswitch running.
@@ -10,10 +12,11 @@ Will automatically capture G729 licensing metrics, if mod\_com\_g729 is enabled.
 TODO
 ----
 
+* update metrics in readme
+* update metrics table formatting in readme
 * Separate hangup causes into normal/abnormal
 * Better metric names
 * Metrics on TDM trunks
-* Rename Classes
 * Generate Alerts
 * Daemonize 
 * Package
