@@ -29,34 +29,35 @@ class FreeSwitchESLProtocol(eventsocket.EventProtocol):
         self.g729 = "true" in yield self.api('g729_available')
 
         # Set the events we want to get.
-        yield self.eventplain("CHANNEL_CREATE CHANNEL_HANGUP CHANNEL_HANGUP_COMPLETE")
+        yield self.eventplain("CHANNEL_CREATE CHANNEL_HANGUP CHANNEL_HANGUP_COMPLETE HEARTBEAT")
 
         # Tell the factory that we're ready. Pass the protocol
         # instance as argument.
         self.factory.ready.callback(self)
 
+    def onHeartbeat(self, ev):
+        statsd.gauge('freeswitch.channels', ev.Session-Count)
+
     def onChannelCreate(self, ev):
-        statsd.increment('freeswitch.channels.started',1)
-        statsd.increment('freeswitch.channels',1)
+        statsd.increment('freeswitch.channels.started')
         statsd.increment('freeswitch.call.direction.'+ ev.Call-Direction)
         if (self.g729):
-        	g729_metrics()
+            g729_metrics()
         
     def onChannelHangup(self, ev):
-        statsd.increment('freeswitch.channels.finished',1)
-        statsd.decrement('freeswitch.channels',1)
+        statsd.increment('freeswitch.channels.finished')
         if (ev.Hangup_Cause in ["NORMAL_CLEARING"]):
-            statsd.increment('freeswitch.channels.finished.normally',1)
-            statsd.increment('freeswitch.channels.finished.normally.'+ev.Hangup_Cause.lower(),1)
+            statsd.increment('freeswitch.channels.finished.normally')
+            statsd.increment('freeswitch.channels.finished.normally.'+ev.Hangup_Cause.lower())
         else:
-            statsd.increment('freeswitch.channels.finished.abnormally',1)
-            statsd.increment('freeswitch.channels.finished.abnormally.'+ev.Hangup_Cause.lower(),1)	
+            statsd.increment('freeswitch.channels.finished.abnormally')
+            statsd.increment('freeswitch.channels.finished.abnormally.'+ev.Hangup_Cause.lower())
 
     def onChannelHangupComplete(self, ev):
-    	statsd.histogram('freeswitch.rtp.skipped_packet.in', ev.variable_rtp_audio_in_skip_packet_count)
-    	statsd.histogram('freeswitch.rtp.skipped_packet.out', ev.variable_rtp_audio_out_skip_packet_count)
-		statsd.increment('freeswitch.caller.context.'+ev.Caller-Context)
-    	statsd.increment('freeswitch.caller.source.'+ev.Caller-Source)
+        statsd.histogram('freeswitch.rtp.skipped_packet.in', ev.variable_rtp_audio_in_skip_packet_count)
+        statsd.histogram('freeswitch.rtp.skipped_packet.out', ev.variable_rtp_audio_out_skip_packet_count)
+        statsd.increment('freeswitch.caller.context.'+ev.Caller-Context)
+        statsd.increment('freeswitch.caller.source.'+ev.Caller-Source)
     
     @defer.inlineCallbacks 
     def g729_metrics(self):
