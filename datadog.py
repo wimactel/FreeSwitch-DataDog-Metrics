@@ -73,6 +73,8 @@ class FreeSwitchConfig(hostConfig):
 class FreeSwitchESLProtocol(eventsocket.EventProtocol):
     def __init__(self):
         eventsocket.EventProtocol.__init__(self)
+        
+        self.config = FreeSwitchESLProtocolConfig()
 
     @defer.inlineCallbacks
     def authRequest(self, ev):
@@ -80,7 +82,7 @@ class FreeSwitchESLProtocol(eventsocket.EventProtocol):
         # Please refer to http://wiki.freeswitch.org/wiki/Mod_event_socket#auth
         # for more information.
         try:
-            yield self.auth(self.factory.password)
+            yield self.auth(self.config.freeSwitch.password)
         except eventsocket.AuthError, e:
             self.factory.continueTrying = False
             self.factory.ready.errback(e)
@@ -107,7 +109,7 @@ class FreeSwitchESLProtocol(eventsocket.EventProtocol):
         
     def onChannelHangup(self, ev):
         statsd.increment('freeswitch.channels.finished')
-        if (ev.Hangup_Cause in ["NORMAL_CLEARING"]):
+        if (ev.Hangup_Cause in self.config.freeSwitch.normalHangupCauses):
             statsd.increment('freeswitch.channels.finished.normally')
             statsd.increment('freeswitch.channels.finished.normally.'+ev.Hangup_Cause.lower())
         else:
@@ -138,13 +140,13 @@ class FreeSwitchESLFactory(protocol.ReconnectingClientFactory):
     maxDelay = 15
     protocol = FreeSwitchESLProtocol
 
-    def __init__(self, password):
+    def __init__(self):
         self.ready = defer.Deferred()
-        self.password = password
 
 @defer.inlineCallbacks
 def main():
-    factory = FreeSwitchESLFactory(password="ClueCon")
+
+    factory = FreeSwitchESLFactory()
     reactor.connectTCP("127.0.0.1", 8021, factory)
 
     # Wait for the connection to be established
