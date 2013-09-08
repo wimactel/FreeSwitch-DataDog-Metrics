@@ -26,7 +26,8 @@ class FreeSwitchESLProtocol(eventsocket.EventProtocol):
             self.factory.ready.errback(e)
 
         #check for G729
-        self.g729 = "true" in yield self.api('g729_available')
+        g729_available = yield self.api('g729_available') 
+        self.g729 = "true" in g729_available
 
         # Set the events we want to get.
         yield self.eventplain("CHANNEL_CREATE CHANNEL_HANGUP CHANNEL_HANGUP_COMPLETE HEARTBEAT")
@@ -61,15 +62,17 @@ class FreeSwitchESLProtocol(eventsocket.EventProtocol):
     
     @defer.inlineCallbacks 
     def g729_metrics(self):
-        g729_count = int(yield self.api('g729_count'))
+        g729_count = yield self.api('g729_count')
+        g729_count = int(g729_count)
         statsd.gauge('freeswitch.g729.total', g729_count)
-        g729_enc, g729_dec = [int(e) for e in (yield self.api('g729_used'))).split(":")]
+        g729_counts = yield self.api('g729_used')
+        g729_enc, g729_dec = [int(e) for e in g729_counts.split(":")]
         statsd.gauge('freeswitch.g729.used.encoder', g729_enc)
         statsd.gauge('freeswitch.g729.used.decoder', g729_dec)
         if (g729_enc > g729_dec):
-            statsd.gauge('freeswitch.g729.utilization' g729_enc / g729_count)
+            statsd.gauge('freeswitch.g729.utilization', g729_enc / g729_count)
         else:
-            statsd.gauge('freeswitch.g729.utilization' g729_dec / g729_count)
+            statsd.gauge('freeswitch.g729.utilization', g729_dec / g729_count)
 
 class FreeSwitchESLFactory(protocol.ReconnectingClientFactory):
     maxDelay = 15
