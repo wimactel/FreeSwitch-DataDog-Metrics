@@ -44,12 +44,37 @@ Sofia
 Configuration
 -------------
 
-* DataDog API Key
-* EventSocket Password (defaults to ClueCon)
-* EventSocket Host (defaults to localhost)
-* EventSocket Port (Defaults to 8021)
-* DogStatsD Port (defaults to ?)
-* Normal hangup causes
+You only need a configuration file if:
+
+* FreeSwtich has a custom ESL config
+* You're monitoring a remote machine
+* You'd like datadog to alarm
+* You're running dogstatsd on a custom port
+* You're connecting to a remote dogstatsd
+
+If there's no API key present, no alarms will be emitted.
+
+Any values left unpopulated have sensible defaults. 
+
+By default, the only normal hangup cause is NORMAL_CLEARING. 
+
+```yaml
+---
+DataDog:
+    API_KEY: KEY
+    Port: 0
+FreeSwitch:
+    Password: ClueCon
+    Host: 127.0.0.1
+    Port: 8021
+    Normal_Hangup_Causes: 
+        - NORMAL_CLEARING
+        - NORMAL_TEMPORARY_FAILURE
+        - USER_BUSY
+        - NO_ANSWER
+        - NO_ROUTE_DESTINATION
+        
+```
 
 Requirements 
 ------------
@@ -57,7 +82,7 @@ Requirements
 * [Twisted](http://twistedmatrix.com/)
 * [eventsocket](https://github.com/fiorix/eventsocket)
 * [dogstatsd-python](https://github.com/DataDog/dogstatsd-python)
-* YAML
+* [PyYAML](http://pyyaml.org)
 
 Metrics
 -------

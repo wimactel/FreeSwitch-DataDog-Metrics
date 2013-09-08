@@ -10,6 +10,55 @@ from twisted.internet import defer, reactor, protocol
 
 from statsd import statsd
 
+class FreeSwitchESLProtocolConfig(object):  
+
+    def __init__(self):
+        import yaml
+        try:
+            self.raw_config = yaml.load(file('config.yaml', 'r'))
+        except:
+            self.raw_config = {}
+        
+        self.dataDog = DataDogConfig(self.raw_config.get("DataDog", {}))
+        
+        self.freeSwitch = FreeSwitchConfig(self.raw_config.get("FreeSwitch", {}))
+            
+class hostConfig(object):
+    def __init__(self, values):
+        self.raw_config = values
+    
+    def default_host(self):
+        return "localhost"
+        
+    def host(self):
+        return self.raw_config.get("host", self.default_host())
+        
+    def port(self):
+        return self.raw_config.get("port", self.default_port())
+                
+class DataDogConfig(hostConfig):
+    def __init__(self, values):
+        hostConfig.__init__(self, values)
+        
+    def default_port(self):
+        return 8125
+        
+    def apiKey(self):
+        return self.raw_config.get("API_KEY", None)
+
+class FreeSwitchConfig(hostConfig):
+    def __init__(self, values):
+        hostConfig.__init__(self, values)
+
+    def default_port(self):
+        return 8021
+
+    def password(self):
+       return self.raw_config.get("API_KEY", "ClueCon")
+        
+    def normalHangupCauses(self):
+        return self.raw_config.get("API_KEY", ["NORMAL_CLEARING"])
+
 class FreeSwitchESLProtocol(eventsocket.EventProtocol):
     def __init__(self):
         eventsocket.EventProtocol.__init__(self)
