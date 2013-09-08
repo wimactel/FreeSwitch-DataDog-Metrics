@@ -18,7 +18,7 @@ TODO
 * Better metric names
 * Metrics on TDM trunks
 * Generate Alerts
-* Daemonize 
+* [Daemonize](https://github.com/eagafonov/python-twisted-startup-script/blob/master/python-twisted-startup-script) 
 * Package
 * Add a config file
 * Alert on SIP gateways
