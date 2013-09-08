@@ -63,6 +63,7 @@ By default, the only normal hangup cause is NORMAL_CLEARING.
 DataDog:
     API_KEY: KEY
     Port: 0
+    Event_Host_Name: myhostname
 FreeSwitch:
     Password: ClueCon
     Host: 127.0.0.1

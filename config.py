@@ -1,4 +1,5 @@
 import yaml
+import socket
 
 class FreeSwitchESLProtocolConfig(object):  
 
@@ -23,11 +24,11 @@ class hostConfig(object):
     def default_host(self):
         return "localhost"
     
-    @property    
+    @property
     def host(self):
         return self.raw_config.get("host", self.default_host())
     
-    @property    
+    @property
     def port(self):
         return self.raw_config.get("port", self.default_port())
         
@@ -37,11 +38,12 @@ class hostConfig(object):
 class DataDogConfig(hostConfig):
     def __init__(self, values):
         hostConfig.__init__(self, values)
+        self.eventHostName = self.raw_config.get("Event_Host_Name", socket.gethostname())
         
     def default_port(self):
         return 8125
     
-    @property    
+    @property
     def apiKey(self):
         return self.raw_config.get("API_KEY", None)
 
