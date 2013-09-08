@@ -22,6 +22,9 @@ class FreeSwitchESLProtocolConfig(object):
         self.dataDog = DataDogConfig(self.raw_config.get("DataDog", {}))
         
         self.freeSwitch = FreeSwitchConfig(self.raw_config.get("FreeSwitch", {}))
+
+    def __repr__(self):
+        return repr(self.raw_config)
             
 class hostConfig(object):
     def __init__(self, values):
@@ -29,12 +32,17 @@ class hostConfig(object):
     
     def default_host(self):
         return "localhost"
-        
+    
+    @property    
     def host(self):
         return self.raw_config.get("host", self.default_host())
-        
+    
+    @property    
     def port(self):
         return self.raw_config.get("port", self.default_port())
+        
+    def __repr__(self):
+        return repr(self.raw_config)    
                 
 class DataDogConfig(hostConfig):
     def __init__(self, values):
@@ -42,7 +50,8 @@ class DataDogConfig(hostConfig):
         
     def default_port(self):
         return 8125
-        
+    
+    @property    
     def apiKey(self):
         return self.raw_config.get("API_KEY", None)
 
@@ -53,9 +62,11 @@ class FreeSwitchConfig(hostConfig):
     def default_port(self):
         return 8021
 
+    @property
     def password(self):
        return self.raw_config.get("API_KEY", "ClueCon")
-        
+
+    @property
     def normalHangupCauses(self):
         return self.raw_config.get("API_KEY", ["NORMAL_CLEARING"])
 
