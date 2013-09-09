@@ -30,7 +30,6 @@ TODO
 Alerts
 ------
 
-* SHUTDOWN
 * MODULE\_LOAD
 * RELAODXML
 * Many [Sofia Events](http://wiki.freeswitch.org/wiki/Mod_sofia#Custom_Events)
