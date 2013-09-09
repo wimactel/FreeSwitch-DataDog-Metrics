@@ -31,8 +31,12 @@ Alerts
 ------
 
 * MODULE\_LOAD
+* MODULE\_UNLOAD
 * RELAODXML
 * Many [Sofia Events](http://wiki.freeswitch.org/wiki/Mod_sofia#Custom_Events)
+    * sofia::gateway_add INFO
+    * sofia::gateway_delete INFO
+    * sofia::gateway_state - when a gateway is detected as down or back up SUCCESS | ERROR
 
 Sofia
 -----
