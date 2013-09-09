@@ -39,7 +39,7 @@ class FreeSwitchESLProtocol(eventsocket.EventProtocol):
         self.g729 = "true" in g729_available
 
         # Set the events we want to get.
-        yield self.eventplain("CHANNEL_CREATE CHANNEL_HANGUP CHANNEL_HANGUP_COMPLETE HEARTBEAT SHUTDOWN MODULE_LOAD")
+        yield self.eventplain("CHANNEL_CREATE CHANNEL_HANGUP CHANNEL_HANGUP_COMPLETE HEARTBEAT SHUTDOWN MODULE_LOAD MODULE_UNLOAD")
         
         datadog.event("Freeswtich Metrics Bridge connected","Connected to FreeSWITCH, and forwarding events.", alert_type="success")
         
@@ -89,6 +89,9 @@ class FreeSwitchESLProtocol(eventsocket.EventProtocol):
 
     def onModuleLoad(self, ev):
         datadog.event("FreeSWITCH Loaded Module","Module %s:%s was loaded" % (ev.type, ev.name), alert_type="info")
+        
+    def onModuleUnload(self, ev):
+        datadog.event("FreeSWITCH Unloaded Module","Module %s:%s was unloaded" % (ev.type, ev.name), alert_type="info")
 
 class FreeSwitchESLFactory(protocol.ReconnectingClientFactory):
     maxDelay = 15
