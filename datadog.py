@@ -2,107 +2,92 @@
 # coding: utf-8
 
 import sys
-sys.path.append("../eventsocket")
 
-import eventsocket
+from zope.interface import implements
+
+from twisted.internet import reactor
+
+from twisted.internet.defer import succeed
+from twisted.web.iweb import IBodyProducer
 from twisted.python import log
-from twisted.internet import defer, reactor, protocol
 
-from statsd import statsd
+from twisted.web.client import Agent
+from twisted.web.http_headers import Headers
 
-
-
-
+try:
+    import simplejson as json
+except ImportError:
+    import json
 
 from config import config
 
-class FreeSwitchESLProtocol(eventsocket.EventProtocol):
-    def __init__(self):
-        eventsocket.EventProtocol.__init__(self)
+class DataDog:
+    def event(self, title, text, date_happened=None, handle=None, priority=None, related_event_id=None, tags=None, host=config.dataDog.eventHostName, device_name=None, aggregation_key=None, source_type_name="FreeSwitch", **kwargs):
+        if config.dataDog.apiKey:
+            body = {
+                'title': title,
+                'text': text,
+            }
+
+            if date_happened is not None:
+                body['date_happened'] = date_happened
+
+            if handle is not None:
+                body['handle'] = handle
+
+            if priority is not None:
+                body['priority'] = priority
+
+            if related_event_id is not None:
+                body['related_event_id'] = related_event_id
+
+            if tags is not None:
+                body['tags'] = ','.join(tags)
+
+            if host is not None:
+                body['host'] = host
+
+            if device_name is not None:
+                body['device_name'] = device_name
+
+            if aggregation_key is not None:
+                body['aggregation_key'] = aggregation_key
+                
+            if source_type_name is not None:
+                body['source_type_name'] = source_type_name
+
+            body.update(kwargs)
+            
+            d = Agent(reactor).request('POST', 'https://app.datadoghq.com/api/v1/events?api_key='+config.dataDog.apiKey, Headers({'Content-Type': ['application/json']}), JSONProducer(body))
+            d.addCallbacks(self.eventHandleResponse, self.eventHandleError)
+
+    def eventHandleResponse(self, r):
+        pass
         
-        self.config = FreeSwitchESLProtocolConfig()
+    def eventHandleError(self, reason):
+        log.msg("In Error")
+        reason.printTraceback()
 
-    @defer.inlineCallbacks
-    def authRequest(self, ev):
-        # Try to authenticate in the eventsocket (Inbound)
-        # Please refer to http://wiki.freeswitch.org/wiki/Mod_event_socket#auth
-        # for more information.
-        try:
-            yield self.auth(self.config.freeSwitch.password)
-        except eventsocket.AuthError, e:
-            self.factory.continueTrying = False
-            self.factory.ready.errback(e)
+class JSONProducer(object):
+    implements(IBodyProducer)
 
-        #check for G729
-        g729_available = yield self.api('g729_available') 
-        self.g729 = "true" in g729_available
+    def __init__(self, body):
+        self.body = json.dumps(body)
+        self.length = len(self.body)
 
-        # Set the events we want to get.
-        yield self.eventplain("CHANNEL_CREATE CHANNEL_HANGUP CHANNEL_HANGUP_COMPLETE HEARTBEAT")
+    def startProducing(self, consumer):
+        consumer.write(self.body)
+        return succeed(None)
 
-        # Tell the factory that we're ready. Pass the protocol
-        # instance as argument.
-        self.factory.ready.callback(self)
+    def pauseProducing(self):
+        pass
 
-    def onHeartbeat(self, ev):
-        statsd.gauge('freeswitch.channels', ev.Session-Count)
+    def stopProducing(self):
+        pass
 
-    def onChannelCreate(self, ev):
-        statsd.increment('freeswitch.channels.started')
-        statsd.increment('freeswitch.call.direction.'+ ev.Call-Direction)
-        if (self.g729):
-            g729_metrics()
-        
-    def onChannelHangup(self, ev):
-        statsd.increment('freeswitch.channels.finished')
-        if (ev.Hangup_Cause in self.config.freeSwitch.normalHangupCauses):
-            statsd.increment('freeswitch.channels.finished.normally')
-            statsd.increment('freeswitch.channels.finished.normally.'+ev.Hangup_Cause.lower())
-        else:
-            statsd.increment('freeswitch.channels.finished.abnormally')
-            statsd.increment('freeswitch.channels.finished.abnormally.'+ev.Hangup_Cause.lower())
-
-    def onChannelHangupComplete(self, ev):
-        statsd.histogram('freeswitch.rtp.skipped_packet.in', ev.variable_rtp_audio_in_skip_packet_count)
-        statsd.histogram('freeswitch.rtp.skipped_packet.out', ev.variable_rtp_audio_out_skip_packet_count)
-        statsd.increment('freeswitch.caller.context.'+ev.Caller-Context)
-        statsd.increment('freeswitch.caller.source.'+ev.Caller-Source)
+datadog = DataDog()
     
-    @defer.inlineCallbacks 
-    def g729_metrics(self):
-        g729_count = yield self.api('g729_count')
-        g729_count = int(g729_count)
-        statsd.gauge('freeswitch.g729.total', g729_count)
-        g729_counts = yield self.api('g729_used')
-        g729_enc, g729_dec = [int(e) for e in g729_counts.split(":")]
-        statsd.gauge('freeswitch.g729.used.encoder', g729_enc)
-        statsd.gauge('freeswitch.g729.used.decoder', g729_dec)
-        if (g729_enc > g729_dec):
-            statsd.gauge('freeswitch.g729.utilization', g729_enc / g729_count)
-        else:
-            statsd.gauge('freeswitch.g729.utilization', g729_dec / g729_count)
-
-class FreeSwitchESLFactory(protocol.ReconnectingClientFactory):
-    maxDelay = 15
-    protocol = FreeSwitchESLProtocol
-
-    def __init__(self):
-        self.ready = defer.Deferred()
-
-@defer.inlineCallbacks
-def main():
-
-    factory = FreeSwitchESLFactory()
-    reactor.connectTCP("127.0.0.1", 8021, factory)
-
-    # Wait for the connection to be established
-    try:
-        client = yield factory.ready
-    except Exception, e:
-        log.err("cannot connect: %s" % e)
-        defer.returnValue(None)
-
 if __name__ == "__main__":
     log.startLogging(sys.stdout)
-    main()
+    datadog.event("test event", "this is a test event", priority='low')
     reactor.run()
