@@ -41,7 +41,7 @@ class FreeSwitchESLProtocol(eventsocket.EventProtocol):
         # Set the events we want to get.
         yield self.eventplain("CHANNEL_CREATE CHANNEL_HANGUP CHANNEL_HANGUP_COMPLETE HEARTBEAT SHUTDOWN")
         
-        datadog.event("Freeswtich Metrics Bridge connected","Connected to FreeSWITCH, and forwarding events.")
+        datadog.event("Freeswtich Metrics Bridge connected","Connected to FreeSWITCH, and forwarding events.", alert_type="success")
         
         self.factory.ready.callback(self)
 
