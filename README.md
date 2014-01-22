@@ -85,6 +85,7 @@ Requirements
 * [eventsocket](https://github.com/fiorix/eventsocket)
 * [dogstatsd-python](https://github.com/DataDog/dogstatsd-python)
 * [PyYAML](http://pyyaml.org)
+* [python-daemon](https://pypi.python.org/pypi/python-daemon/1.6)
 
 Metrics
 -------
