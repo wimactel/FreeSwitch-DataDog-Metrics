@@ -22,7 +22,7 @@ except ImportError:
 from config import config
 
 class DataDog:
-    def event(self, title, text, date_happened=None, handle=None, priority=None, related_event_id=None, tags=None, host=config.dataDog.eventHostName, device_name=None, aggregation_key=None, source_type_name="FreeSwitch", **kwargs):
+    def event(self, title, text, date_happened=None, handle=None, priority=None, related_event_id=None, tags=None, host=config.dataDog.eventHostName, device_name=None, aggregation_key="FreeSwitch", source_type_name="FreeSwitch", **kwargs):
         if config.dataDog.apiKey:
             body = {
                 'title': "%s: %s" % (config.dataDog.eventHostName, title),
