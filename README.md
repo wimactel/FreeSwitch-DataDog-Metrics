@@ -1,13 +1,20 @@
 FreeSwitch-DataDog-Metrics
 ==========================
 
-*Currently not a functional application.*
-
 A FreeSwitch ESL application that exports statistics to DataDog using the dogstatsd api. 
 
 Intended to run on a machine that has both the datadog-agent and freeswitch running.
 
 Will automatically capture G729 licensing metrics, if mod\_com\_g729 is enabled. 
+
+INSTALL
+----
+
+To install please run "./setup.sh" from this directory as the root user. 
+
+This will copy the init script and create the appropriate directories and files.
+
+You can control the freeswitch metrics application by running "/etc/init.d/fsmetrics start|stop|restart"
 
 TODO
 ----
@@ -18,8 +25,6 @@ TODO
 * Better metric names
 * Metrics on TDM trunks
 * Generate Alerts
-* [Daemonize](https://github.com/eagafonov/python-twisted-startup-script/blob/master/python-twisted-startup-script) 
-* Package
 * Add a config file
 * Alert on SIP gateways
 * don't assume the location of eventsocket
