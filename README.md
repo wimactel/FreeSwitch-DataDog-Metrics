@@ -30,7 +30,6 @@ TODO
 Alerts
 ------
 
-* RELAODXML
 * Many [Sofia Events](http://wiki.freeswitch.org/wiki/Mod_sofia#Custom_Events)
     * sofia::gateway_add INFO
     * sofia::gateway_delete INFO
@@ -85,6 +84,7 @@ Requirements
 * [eventsocket](https://github.com/fiorix/eventsocket)
 * [dogstatsd-python](https://github.com/DataDog/dogstatsd-python)
 * [PyYAML](http://pyyaml.org)
+* [python-daemon](https://pypi.python.org/pypi/python-daemon/1.6)
 
 Metrics
 -------
